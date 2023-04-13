@@ -5,45 +5,52 @@ import {
   Image,
   Dimensions, 
   SafeAreaView,
-  StyleSheet
+  StyleSheet,
+  Button
 } from 'react-native';
+import  {envConfig}  from './utils/configs';
 const { width } = Dimensions.get('screen')
+// import * as dotenv from 'dotenv'
+// dotenv.config()
+
+// import {API_URL, API_KEY} from '@env'
 
 const App =  () =>  {
   // let area:string
- 
-  const [area, setArea] = useState('')
+  const {API_URL, API_KEY} = envConfig
+  const [area, setArea] = useState('midrand')
   const [temperature, setTemperature] = useState()
   const [humidity, setHumidity] = useState()
+  const [speed, setSpeed] = useState()
+  const [windDirection, setWindDirection] = useState()
   const [loading, setLoading] = useState(true)
   useEffect(()=>{
-    // setInterval(() =>fetchData(), 30000)
-    fetchData()
-  })
+    (async () => {
+      await fetchData()
+    })()
+  }, [] )
 
 
-  const fetchData = () => {
+  const fetchData = async () => {
     setLoading(true)
-    const API_KEY = '603dad55a0782039ed2b6a3dab823fb0'
-    setArea("midrand")
-    try{
-      fetch(`https://api.openweathermap.org/data/2.5/weather?q=${area}&appid=${API_KEY}&units=metric`)
-      .then(data => data.json())
-      .then((results) => {
-        const {main} = results
+    
+    fetch(`${API_URL}?q=${area}&appid=${API_KEY}&units=metric`)
+    .then(data => data.json())
+    .then((results) => {
+      const {main, wind} = results
 
-        console.log('results', results)
-        const {temp, humidity} = main
-        setTemperature(temp)
-        setHumidity(humidity)
-        setLoading(false)
-      })
-    }
-    catch(e)  {
+      const {temp, humidity} = main
+      const {speed, deg} = wind
+      setTemperature(temp)
+      setHumidity(humidity)
+      setSpeed(speed)
+      setWindDirection(deg)
+      setLoading(false)
+    })
+    .catch((e)  =>{
       console.error('Error: ', e)
       setLoading(false)
-    }
-    
+    })
   }
 
   // fetchData()
@@ -55,7 +62,7 @@ const App =  () =>  {
       <View style={{height:2, width:(width - 50) , backgroundColor:'#555555', marginHorizontal:10}} />
       <View style={{ flexDirection:'row', justifyContent:'center', alignItems:'flex-start', padding:10}}>
         <Image
-          style={{width:100, height:100, padding:10}}
+          style={{width:75, height:75, padding:10}}
           source={require('./src/asserts/cloudy.png')}/>
         
         <View>
@@ -63,13 +70,13 @@ const App =  () =>  {
           (<Text>Loading</Text>)
         : (
           <View style={{flexDirection:"row", padding:10}}>
-            <Text style={{fontSize:22, fontWeight:'bold'}}>
+            <Text style={{fontSize:18, fontWeight:'bold'}}>
               {temperature} 
             </Text>
-            <Text style={{fontSize:12}}>
+            <Text style={{fontSize:10}}>
               o
             </Text>
-            <Text style={{fontSize:16}}>
+            <Text style={{fontSize:14}}>
               C
             </Text>
           </View>)}
@@ -80,13 +87,23 @@ const App =  () =>  {
         <View style={{padding:10}}>
           {/* <Text>Precipitation: {precipitation}%</Text> */}
           <Text>Humidity: {humidity}%</Text>
-          <Text>Wind Speed: {18} km/h</Text>
-          <Text>Wind Direction</Text>
-          
+          <Text>Wind Speed: {speed} km/h</Text>
+          {/* <View style={{flexDirection:"row", padding:10}}>
+            <Text style={{fontSize:14, }}>
+              Wind Direction
+            </Text>
+            <Text style={{fontSize:14}}>
+              {windDirection}
+            </Text>
+            <Text style={{fontSize:12}}>
+              o
+            </Text>
+            
+          </View> */}
         </View>
       </View>
       <View style={{flex:1}}>
-
+        <Button title='Update' onPress={fetchData} />
       </View>
       
     </SafeAreaView>
